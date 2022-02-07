@@ -1,0 +1,40 @@
+# This file describes an application. You can have multiple applications
+# in the same project.
+
+# The name of this app. Must be unique within a project.
+name: app
+
+# The type of the application to build.
+type: php:7.3
+
+relationships:
+    mysql: 'mysql:mysql'
+    postgresdatabase: "dbpostgres:postgresql"
+
+
+dependencies:
+    python3:
+        supervisor: '*'
+
+hooks:
+    build: |
+        set -e
+        bash homebrew.sh pgbouncer
+
+# The size of the persistent disk of the application (in MB).
+disk: 1024
+
+mounts:
+  '/supervisor': 'shared:files/supervisor'
+
+# The configuration of app when it is exposed to the web.
+web:
+    commands:
+        start: |
+            supervisord -n -c /app/supervisord.conf
+    locations:
+        "/":
+            # The public directory of the app, relative to its root.
+            root: "web"
+            # The front-controller script to send non-static requests to.
+            passthru: "/index.php"
